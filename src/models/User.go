@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/badoux/checkmail"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -39,6 +40,10 @@ func validateFields(user *User) error {
 
 	if user.Email == "" {
 		return errors.New("email could not be empty")
+	}
+
+	if err := checkmail.ValidateFormat(user.Email); err != nil {
+		return errors.New("invalid email format")
 	}
 
 	if user.Password == "" {
