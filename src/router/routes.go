@@ -9,7 +9,7 @@ import (
 func AddUserRoutes(r *gin.Engine) *gin.Engine {
 	r.POST("/users", controller.Create)
 	r.GET("/users", controller.List)
-	r.GET("/users/:id", controller.DeleteByID)
+	r.GET("/users/:id", controller.GetByID)
 	r.PUT("/users/:id", controller.UpdateByID)
 	r.DELETE("/users/:id", controller.DeleteByID)
 

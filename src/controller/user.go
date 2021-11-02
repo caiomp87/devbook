@@ -19,6 +19,13 @@ func Create(c *gin.Context) {
 		return
 	}
 
+	if err := models.Prepare(user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
@@ -35,17 +42,104 @@ func Create(c *gin.Context) {
 }
 
 func List(c *gin.Context) {
-	c.String(200, "listando usuários")
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	users, err := repositories.UserCollection.List(ctx)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "unable to list users in database: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
 }
 
 func GetByID(c *gin.Context) {
-	c.String(200, "buscando usuário")
+	ID := c.Param("id")
+
+	if ID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "ID cannot be empty",
+		})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	user, err := repositories.UserCollection.GetByID(ctx, ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "unable to find an user: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
 }
 
 func UpdateByID(c *gin.Context) {
-	c.String(200, "atualizando usuário")
+	ID := c.Param("id")
+
+	if ID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "ID cannot be empty",
+		})
+		return
+	}
+
+	var user *models.User
+	if err := c.BindJSON(&user); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": "unable to read data from request: " + err.Error(),
+		})
+		return
+	}
+
+	if err := models.Prepare(user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	if err := repositories.UserCollection.UpdateByID(ctx, ID, user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "unable to update user: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "user updated successfully",
+	})
 }
 
 func DeleteByID(c *gin.Context) {
-	c.String(200, "removendo usuário")
+	ID := c.Param("id")
+
+	if ID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "ID cannot be empty",
+		})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	if err := repositories.UserCollection.DeleteByID(ctx, ID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "unable to delete user: " + err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "user deleted successfully",
+	})
 }
