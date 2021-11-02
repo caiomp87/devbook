@@ -1,6 +1,7 @@
 package models
 
 import (
+	"api/src/helper"
 	"errors"
 	"strings"
 	"time"
@@ -23,14 +24,27 @@ func Prepare(user *User) error {
 	if err != nil {
 		return err
 	}
-	formatFields(user)
+
+	err = formatFields(user)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func formatFields(user *User) {
+func formatFields(user *User) error {
 	user.Name = strings.TrimSpace(user.Name)
 	user.Email = strings.TrimSpace(user.Email)
+
+	passwordHash, err := helper.Hash(user.Password)
+	if err != nil {
+		return err
+	}
+
+	user.Password = string(passwordHash)
+
+	return nil
 }
 
 func validateFields(user *User) error {

@@ -51,12 +51,10 @@ func (db userDatabaseHelper) List(ctx context.Context) ([]*models.User, error) {
 
 	defer cursor.Close(ctx)
 
-	var (
-		user  *models.User
-		users = make([]*models.User, 0)
-	)
+	users := make([]*models.User, 0)
 
 	for cursor.Next(ctx) {
+		var user *models.User
 		if err := cursor.Decode(&user); err != nil {
 			return nil, err
 		}
